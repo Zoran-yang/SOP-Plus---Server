@@ -54,6 +54,7 @@ app.post("/getTaskInfos", (req, res) => {
   if (!id) {return res.status(400).json("blank signin info")}
   const isVaild = id === "zoran"
   if (!isVaild){res.status(400).json("wrong login Info")}
+  console.log("requestInfo",requestInfo)
 
   // according to requestedType, getting task info
   switch (requestInfo.requestType) {
@@ -67,7 +68,7 @@ app.post("/getTaskInfos", (req, res) => {
       
       break;
     case "taskNames":
-      db("tasknames").select("taskname").where(requestInfo.taskType).then((data) => { //get tasknames by tasktype
+      db("tasknames").select("taskname").where({tasktype:requestInfo.taskType}).then((data) => { //get tasknames by tasktype
         res.json(data);
       })
       .catch((err)=>{
@@ -77,7 +78,15 @@ app.post("/getTaskInfos", (req, res) => {
       break;
     case "taskTags":
       db("tasktags").select("tasktag").then((data) => { //get all tasktags
-        console.log(data)
+        res.json(data);
+      })
+      .catch((err)=>{
+        console.log(err)
+        res.status(400).json("system error")
+      })
+      break;
+    case "taskSOP":
+      db("tasksops").select("taskname").where({tasktype:requestInfo.taskType}).then((data) => { //get tasknames by tasktype
         res.json(data);
       })
       .catch((err)=>{
@@ -88,7 +97,7 @@ app.post("/getTaskInfos", (req, res) => {
   }
 });
 
-
+// //使用者行為 : update Task Information || 對應網路行為 : patch || 結果 : transfer user Information
 app.patch("/updateTaskInfos", (req, res) => {
   const {id, updatedInfo} = req.body
   // user info checking
@@ -103,15 +112,20 @@ app.patch("/updateTaskInfos", (req, res) => {
       db("tasktypes").insert({tasktype : JSON.stringify(updatedInfo.taskType)}).returning("*").then((data) => { //get all tasktypes
         res.json(data);
       }).catch((err)=>{
-        console.log(err)
+        if (err.code === "23505") {
+          return
+        }
         res.status(400).json("system error")
       })
       break;
     case "taskNames":
-      db("tasknames").insert({tasktype : JSON.stringify(updatedInfo.taskType),taskName : JSON.stringify({title: updatedInfo.taskName})}).returning("*").then((data) => { //get tasknames by tasktype
+      db("tasknames").insert({tasktype : JSON.stringify(updatedInfo.taskType),taskname : JSON.stringify(updatedInfo.taskName)}).returning("*").then((data) => { //get tasknames by tasktype
         res.json(data);
       })
       .catch((err)=>{
+        if (err.code === "23505") {
+          return
+        }
         console.log(err)
         res.status(400).json("system error")
       })
@@ -121,12 +135,53 @@ app.patch("/updateTaskInfos", (req, res) => {
         res.json(data);
       })
       .catch((err)=>{
+        if (err.code === "23505") {
+          return
+        }
+        console.log(err)
+        res.status(400).json("system error")
+      })
+      break;
+    case "taskContent":
+      db("taskdetails").insert({
+          tasktype : JSON.stringify(updatedInfo.taskType),
+          taskname : JSON.stringify(updatedInfo.taskName),
+          tasktag : JSON.stringify(updatedInfo.taskTag),
+          taskdetail : JSON.stringify(updatedInfo.taskContent),
+          detailid : updatedInfo.detailId
+        }).returning("*").then((data) => { //get all tasktags
+        res.json(data);
+      })
+      .catch((err)=>{
+        if (err.code === "23505") {
+          return
+        }
+        console.log(err)
+        res.status(400).json("system error")
+      })
+      break;
+    case "TaskSOP":
+      db("tasksops").insert({
+        tasktype : JSON.stringify(updatedInfo.taskType), 
+        taskname : JSON.stringify(updatedInfo.taskName), 
+        tasktag : JSON.stringify(updatedInfo.taskTag), 
+        sop : JSON.stringify(updatedInfo.sop),
+        sopid : updatedInfo.sopId
+      }).returning("*").then((data) => { //get all tasktags
+        res.json(data);
+      })
+      .catch((err)=>{
+        if (err.code === "23505") {
+          return
+        }
         console.log(err)
         res.status(400).json("system error")
       })
       break;
   }
 });
+
+
 
 // //使用者行為 : signin || 對應網路行為 : get || 結果 : 顯示成功或失敗
 // app.post('/signin', (req, res) => {handleSignin.handleSignin(req, res, bcrypt, db)});

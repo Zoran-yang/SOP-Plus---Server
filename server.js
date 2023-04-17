@@ -91,27 +91,41 @@ app.post("/getTaskInfos", (req, res) => {
         res.status(400).json("system error")
       })
       break;
+    case "AllTaskSOP":
+      db("tasksops").returning("*")
+      .then((data) => { //get tasknames by tasktype
+        console.log(data)
+        res.json(data);
+      })
+      .catch((err)=>{
+        console.log(err)
+        res.status(400).json("system error")
+      })
+      break;
   }
 });
 
 
-// //使用者行為 : update Task Information || 對應網路行為 : patch || 結果 : transfer user Information
+
+//使用者行為 : update Task Information || 對應網路行為 : patch || 結果 : transfer user Information
 app.patch("/updateTaskInfos", (req, res) => {
   let {id, updatedInfo} = req.body
   // user info checking
   if (!id) {return res.status(400).json("blank signin info")}
   if (id !== "zoran"){res.status(400).json("wrong login Info")}
   console.log("updatedInfo",updatedInfo)
-  updatedInfo = JSON.stringify(updatedInfo)
+
 
   // according to requestedType, getting task info
   switch (updatedInfo.requestType) {
     case "taskTypes":
-      db("tasktypes").insert({tasktype : updatedInfo.taskType})
+      console.log("taskTypes",updatedInfo.taskType)
+      db("tasktypes").insert({tasktype : JSON.stringify(updatedInfo.taskType)})
       .returning("*")
       .then((data) => { //get all tasktypes
         res.json(data);
       }).catch((err)=>{
+        console.log(err.code)
         if (err.code === "23505") {
           return
         }
@@ -120,8 +134,8 @@ app.patch("/updateTaskInfos", (req, res) => {
       break;
     case "taskNames":
       db("tasknames").insert({
-        tasktype : updatedInfo.taskType,
-        taskname : updatedInfo.taskName
+        tasktype : JSON.stringify(updatedInfo.taskType),
+        taskname : JSON.stringify(updatedInfo.taskName)
       }).returning("*").then((data) => { //get tasknames by tasktype
         res.json(data);
       })
@@ -135,7 +149,7 @@ app.patch("/updateTaskInfos", (req, res) => {
       break;
     case "taskTags":
       db("tasktags").insert({
-        tasktag : updatedInfo.TaskTag
+        tasktag : JSON.stringify(updatedInfo.TaskTag)
       }).returning("*").then((data) => { //get all tasktags
         res.json(data);
       })
@@ -149,11 +163,11 @@ app.patch("/updateTaskInfos", (req, res) => {
       break;
     case "taskContent":
       db("taskdetails").insert({
-          tasktype : updatedInfo.taskType,
-          taskname : updatedInfo.taskName,
-          tasktag : updatedInfo.taskTag,
-          taskdetail : updatedInfo.taskContent,
-          detailid : updatedInfo.detailId
+          tasktype : JSON.stringify(updatedInfo.taskType),
+          taskname : JSON.stringify(updatedInfo.taskName),
+          tasktag : JSON.stringify(updatedInfo.taskTag),
+          taskdetail : JSON.stringify(updatedInfo.taskContent),
+          detailid : JSON.stringify(updatedInfo.detailId)
         }).returning("*").then((data) => { //get all tasktags
         res.json(data);
       })
@@ -166,12 +180,13 @@ app.patch("/updateTaskInfos", (req, res) => {
       })
       break;
     case "TaskSOP":
+      console.log("TaskSOP",updatedInfo)
       db("tasksops").insert({
-        tasktype : updatedInfo.taskType, 
-        taskname : updatedInfo.taskName, 
-        tasktag : updatedInfo.taskTag, 
-        sop : updatedInfo.sop,
-        sopid : updatedInfo.sopId
+        tasktype : JSON.stringify(updatedInfo.taskType), 
+        taskname : JSON.stringify(updatedInfo.taskName), 
+        tasktag : JSON.stringify(updatedInfo.taskTag), 
+        sop : JSON.stringify(updatedInfo.sop),
+        sopid : JSON.stringify(updatedInfo.sopId)
       }).returning("*").then((data) => { //get all tasktags
         res.json(data);
       })
@@ -187,7 +202,98 @@ app.patch("/updateTaskInfos", (req, res) => {
 });
 
 
+//使用者行為 : revise original task information || 對應網路行為 : patch || 結果 : revise user Information
+app.patch("/reviseTaskInfos", (req, res) => {
+  let {id, revisedInfo} = req.body
+  // user info checking
+  if (!id) {return res.status(400).json("blank signin info")}
+  if (id !== "zoran"){res.status(400).json("wrong login Info")}
+  console.log("updatedInfo",updatedInfo)
 
 
+  // according to requestedType, getting task info
+  switch (updatedInfo.requestType) {
+    case "taskTypes":
+      console.log("taskTypes",updatedInfo.taskType)
+      db("tasktypes").insert({tasktype : JSON.stringify(updatedInfo.taskType)})
+      .returning("*")
+      .then((data) => { //get all tasktypes
+        res.json(data);
+      }).catch((err)=>{
+        console.log(err.code)
+        if (err.code === "23505") {
+          return
+        }
+        res.status(400).json("system error")
+      })
+      break;
+    case "taskNames":
+      db("tasknames").insert({
+        tasktype : JSON.stringify(updatedInfo.taskType),
+        taskname : JSON.stringify(updatedInfo.taskName)
+      }).returning("*").then((data) => { //get tasknames by tasktype
+        res.json(data);
+      })
+      .catch((err)=>{
+        if (err.code === "23505") {
+          return
+        }
+        console.log(err)
+        res.status(400).json("system error")
+      })
+      break;
+    case "taskTags":
+      db("tasktags").insert({
+        tasktag : JSON.stringify(updatedInfo.TaskTag)
+      }).returning("*").then((data) => { //get all tasktags
+        res.json(data);
+      })
+      .catch((err)=>{
+        if (err.code === "23505") {
+          return
+        }
+        console.log(err)
+        res.status(400).json("system error")
+      })
+      break;
+    case "taskContent":
+      db("taskdetails").insert({
+          tasktype : JSON.stringify(updatedInfo.taskType),
+          taskname : JSON.stringify(updatedInfo.taskName),
+          tasktag : JSON.stringify(updatedInfo.taskTag),
+          taskdetail : JSON.stringify(updatedInfo.taskContent),
+          detailid : JSON.stringify(updatedInfo.detailId)
+        }).returning("*").then((data) => { //get all tasktags
+        res.json(data);
+      })
+      .catch((err)=>{
+        if (err.code === "23505") {
+          return
+        }
+        console.log(err)
+        res.status(400).json("system error")
+      })
+      break;
+    case "TaskSOP":
+      console.log("TaskSOP",updatedInfo)
+      db("tasksops").insert({
+        tasktype : JSON.stringify(updatedInfo.taskType), 
+        taskname : JSON.stringify(updatedInfo.taskName), 
+        tasktag : JSON.stringify(updatedInfo.taskTag), 
+        sop : JSON.stringify(updatedInfo.sop),
+        sopid : JSON.stringify(updatedInfo.sopId)
+      }).returning("*").then((data) => { //get all tasktags
+        res.json(data);
+      })
+      .catch((err)=>{
+        if (err.code === "23505") {
+          return
+        }
+        console.log(err)
+        res.status(400).json("system error")
+      })
+      break;
+  }
+});
 
 

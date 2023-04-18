@@ -133,12 +133,10 @@ app.patch("/updateTaskInfos", (req, res) => {
   if (id !== "zoran") {
     res.status(400).json("wrong login Info");
   }
-  console.log("updatedInfo", updatedInfo);
 
   // according to requestedType, getting task info
   switch (updatedInfo.requestType) {
     case "taskTypes":
-      console.log("taskTypes", updatedInfo.taskType);
       db("tasktypes")
         .insert({ tasktype: JSON.stringify(updatedInfo.taskType) })
         .returning("*")
@@ -214,7 +212,7 @@ app.patch("/updateTaskInfos", (req, res) => {
         });
       break;
     case "TaskSOP":
-      console.log("TaskSOP", updatedInfo);
+      console.log("updatedInfo", updatedInfo);
       db("tasksops")
         .insert({
           tasktype: JSON.stringify(updatedInfo.taskType),
@@ -253,7 +251,6 @@ app.patch("/reviseTaskInfos", (req, res) => {
   // according to requestedType, getting task info
   switch (revisedInfo.requestType) {
     // case "taskTypes":
-    //   console.log("taskTypes",updatedInfo.taskType)
     //   db("tasktypes").insert({tasktype : JSON.stringify(updatedInfo.taskType)})
     //   .returning("*")
     //   .then((data) => { //get all tasktypes

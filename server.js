@@ -92,8 +92,12 @@ app.post("/getTaskInfos", (req, res) => {
         });
       break;
     case "taskSOP":
+      const originalDataJsonb = JSON.stringify(requestInfo.taskTags);
       db("tasksops")
-        .whereRaw("tasktag::jsonb @> ?", [JSON.stringify(requestInfo.taskTags)])
+        .whereRaw(
+          "tasktag::jsonb @> ?::jsonb AND jsonb_array_length(tasktag::jsonb) = jsonb_array_length(?::jsonb)",
+          [originalDataJsonb, originalDataJsonb]
+        )
         .andWhere({
           tasktype: requestInfo.taskType,
           taskname: requestInfo.taskName,
@@ -145,10 +149,10 @@ app.patch("/updateTaskInfos", (req, res) => {
           res.json(data);
         })
         .catch((err) => {
-          console.log(err.code);
           if (err.code === "23505") {
             return;
           }
+          console.log(err);
           res.status(400).json("system error");
         });
       break;
@@ -212,7 +216,6 @@ app.patch("/updateTaskInfos", (req, res) => {
         });
       break;
     case "TaskSOP":
-      console.log("updatedInfo", updatedInfo);
       db("tasksops")
         .insert({
           tasktype: JSON.stringify(updatedInfo.taskType),

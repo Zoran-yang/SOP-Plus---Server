@@ -2,7 +2,7 @@ const validateUser = require("./validateUser");
 
 const handleGet = (req, res, db) => {
   const { id, requestInfo } = req.body;
-  console.log("getTaskInfos", "requestInfo", requestInfo);
+
   // user info checking
   if (!id) {
     return res.status(400).json("blank signin info");

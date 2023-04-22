@@ -72,25 +72,25 @@ const handleRevise = (req, res, db) => {
     //   break;
     case "TaskSOP":
       const originalDataJsonb = JSON.stringify(revisedInfo.taskTag);
-      console.log("revisedInfo", revisedInfo);
-      console.log("originalDataJsonb", originalDataJsonb);
       db("tasksops")
         .whereRaw(
+          //check if the tasktags already exist
           "tasktag::jsonb @> ?::jsonb AND jsonb_array_length(tasktag::jsonb) = jsonb_array_length(?::jsonb)",
           [originalDataJsonb, originalDataJsonb]
         )
         .andWhere({
+          // and check if the task is the same as the original one
           tasktype: revisedInfo.taskType,
           taskname: revisedInfo.taskName,
         })
         .then((data) => {
           if (
-            data.length === 0 ||
-            (data.length && data[0].sopid === revisedInfo.sopId)
+            data.length === 0 || //no such task
+            (data.length && data[0].sopid === revisedInfo.sopId) //the task is the same as the original one
           ) {
             //no such task or the task is the same as the original one
             //The reason why I don't use constraint in database is that tasktag is a array,
-            //so unique constraint will not work.
+            //db can't tell the difference, so unique constraint will not work.
             db("tasksops")
               .where({ sopid: revisedInfo.sopId })
               .update({
@@ -105,9 +105,6 @@ const handleRevise = (req, res, db) => {
                 res.json(data);
               })
               .catch((err) => {
-                if (err.code === "23505") {
-                  return;
-                }
                 console.log(err);
                 res.status(400).json("system error");
               });

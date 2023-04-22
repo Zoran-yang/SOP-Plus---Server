@@ -7,65 +7,109 @@ const handleUpdate = (req, res, db) => {
   if (id !== "zoran") {
     res.status(400).json("wrong login Info");
   }
+  console.log("updatedInfo", updatedInfo);
 
   // according to requestedType, getting task info
   switch (updatedInfo.requestType) {
     case "taskTypes":
       db("tasktypes")
-        .insert({ tasktype: JSON.stringify(updatedInfo.taskType) })
-        .returning("*")
-        .then((data) => {
-          //get all tasktypes
-          console.log(data);
-          res.json(data);
-        })
-        .catch((err) => {
-          if (err.code === "23505") {
+        .where({ tasktype: JSON.stringify(updatedInfo.taskType) }) //check if task already exist
+        .first()
+        .then((result) => {
+          if (result) {
+            //if task already exist
+            res.status(400).json("tasktype already exist");
             return;
           }
+          db("tasktypes") //if task not exist, insert new task
+            .insert({ tasktype: JSON.stringify(updatedInfo.taskType) })
+            .returning("*")
+            .then((data) => {
+              //get all tasktypes
+              res.json(data);
+            })
+            .catch((err) => {
+              console.log(err);
+              res.status(400).json("system error");
+            });
+        })
+        .catch((err) => {
           console.log(err);
           res.status(400).json("system error");
         });
       break;
     case "taskNames":
       db("tasknames")
-        .insert({
+        .where({
+          //check if task already exist
           tasktype: JSON.stringify(updatedInfo.taskType),
           taskname: JSON.stringify(updatedInfo.taskName),
         })
-        .returning("*")
-        .then((data) => {
-          //get tasknames by tasktype
-          res.json(data);
-        })
-        .catch((err) => {
-          if (err.code === "23505") {
+        .first()
+        .then((result) => {
+          if (result) {
+            //if task already exist
+            res.status(400).json("taskname already exist");
             return;
           }
+          db("tasknames") //if task not exist, insert new task
+            .insert({
+              tasktype: JSON.stringify(updatedInfo.taskType),
+              taskname: JSON.stringify(updatedInfo.taskName),
+            })
+            .returning("*")
+            .then((data) => {
+              //get tasknames by tasktype
+              res.json(data);
+            })
+            .catch((err) => {
+              console.log(err);
+              res.status(400).json("system error");
+            });
+        })
+        .catch((err) => {
           console.log(err);
           res.status(400).json("system error");
         });
       break;
     case "taskTags":
       db("tasktags")
-        .insert({
+        .where({
+          //check if task already exist
           tasktag: JSON.stringify(updatedInfo.TaskTag),
         })
-        .returning("*")
-        .then((data) => {
-          //get all tasktags
-          res.json(data);
-        })
-        .catch((err) => {
-          if (err.code === "23505") {
+        .first()
+        .then((result) => {
+          if (result) {
+            //if task exist
+            res.status(400).json("taskname already exist");
             return;
           }
+          db("tasktags")
+            .insert({
+              tasktag: JSON.stringify(updatedInfo.TaskTag),
+            })
+            .returning("*")
+            .then((data) => {
+              //get all tasktags
+              res.json(data);
+            })
+            .catch((err) => {
+              if (err.code === "23505") {
+                res.status(400).json("tasktag already exist");
+                return;
+              }
+              console.log(err);
+              res.status(400).json("system error");
+            });
+        })
+        .catch((err) => {
           console.log(err);
           res.status(400).json("system error");
         });
       break;
     case "taskContent":
-      db("taskdetails")
+      db("taskdetails") //repeated content is allowed
         .insert({
           tasktype: JSON.stringify(updatedInfo.taskType),
           taskname: JSON.stringify(updatedInfo.taskName),
@@ -85,7 +129,7 @@ const handleUpdate = (req, res, db) => {
       break;
     case "TaskSOP":
       const originalDataJsonb = JSON.stringify(updatedInfo.taskTag);
-      db("tasksops")
+      db("tasksops") //check if task already exist
         .whereRaw(
           "tasktag::jsonb @> ?::jsonb AND jsonb_array_length(tasktag::jsonb) = jsonb_array_length(?::jsonb)",
           [originalDataJsonb, originalDataJsonb]
@@ -94,8 +138,9 @@ const handleUpdate = (req, res, db) => {
           tasktype: updatedInfo.taskType,
           taskname: updatedInfo.taskName,
         })
-        .then((data) => {
-          if (data.length === 0) {
+        .first()
+        .then((result) => {
+          if (!result) {
             //no such task
             //The reason why I don't use constraint in database is that tasktag is a array,
             //so unique constraint will not work.
@@ -114,6 +159,7 @@ const handleUpdate = (req, res, db) => {
               })
               .catch((err) => {
                 if (err.code === "23505") {
+                  res.status(400).json("SOP already exist");
                   return;
                 }
                 console.log(err);

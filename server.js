@@ -5,6 +5,7 @@ const path = require("path");
 const updateTaskInfos = require("./controllers/updateTaskInfos");
 const getTaskInfos = require("./controllers/getTaskInfos");
 const reviseTaskInfos = require("./controllers/reviseTaskInfos");
+const delTaskInfos = require("./controllers/delTaskInfos");
 
 const app = express();
 
@@ -44,15 +45,20 @@ app.get("/*", function (req, res) {
   res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 
-//使用者行為 : get users's data || 對應網路行為 : post || 結果 : 返回user資料
+//Behavior : get users's data || RESTFUL : post || RESULT : 返回user資料
 app.post("/getTaskInfos", (req, res) => getTaskInfos.handleGet(req, res, db));
 
-//使用者行為 : update Task Information || 對應網路行為 : patch || 結果 : transfer user Information
+//Behavior : update Task Information || RESTFUL : patch || RESULT : transfer user Information
 app.patch("/updateTaskInfos", (req, res) =>
   updateTaskInfos.handleUpdate(req, res, db)
 );
 
-//使用者行為 : revise original task information || 對應網路行為 : patch || 結果 : revise user Information
+//Behavior : revise original task information || RESTFUL : patch || RESULT : revise user Information
 app.patch("/reviseTaskInfos", (req, res) =>
   reviseTaskInfos.handleRevise(req, res, db)
+);
+
+//Behavior : delete original task information || RESTful : delete || Result : revise user Information
+app.delete("/deleteTaskInfos", (req, res) =>
+  delTaskInfos.handleDelete(req, res, db)
 );

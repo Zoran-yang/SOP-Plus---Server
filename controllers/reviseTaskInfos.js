@@ -2,11 +2,14 @@ const handleRevise = (req, res, db) => {
   let { id, revisedInfo } = req.body;
   // user info checking
   if (!id) {
-    return res.status(400).json("blank signin info");
+    return res
+      .status(400)
+      .json("Activity : reviseTaskInfos", "blank signin info");
   }
   if (id !== "zoran") {
-    res.status(400).json("wrong login Info");
+    res.status(400).json("Activity : reviseTaskInfos", "wrong login Info");
   }
+  console.log("revisedInfo", revisedInfo);
 
   // according to requestedType, getting task info
   switch (revisedInfo.requestType) {
@@ -101,23 +104,24 @@ const handleRevise = (req, res, db) => {
               })
               .returning("*")
               .then((data) => {
-                //get all tasktags
                 res.json(data);
               })
               .catch((err) => {
                 console.log(err);
-                res.status(400).json("system error");
+                res
+                  .status(400)
+                  .json("Activity : reviseTaskInfos", "system error");
               });
           } else {
             //task already exist
             res
               .status(400)
-              .json("SOP already exist, please revise it directly");
+              .json("This SOP already exist, please revise SOP informaton");
           }
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : reviseTaskInfos", "system error");
         });
       break;
   }

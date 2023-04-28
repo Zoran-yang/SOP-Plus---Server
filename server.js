@@ -6,6 +6,7 @@ const updateTaskInfos = require("./controllers/updateTaskInfos");
 const getTaskInfos = require("./controllers/getTaskInfos");
 const reviseTaskInfos = require("./controllers/reviseTaskInfos");
 const delTaskInfos = require("./controllers/delTaskInfos");
+const { snakeCase } = require("lodash");
 
 const app = express();
 
@@ -41,9 +42,9 @@ app.get("/ping", function (req, res) {
   return res.send("pong");
 });
 
-app.get("/*", function (req, res) {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
-});
+// app.get("/*", function (req, res) {
+//   res.sendFile(path.join(__dirname, "build", "index.html"));
+// });
 
 //Behavior : get users's data || RESTFUL : post || RESULT : 返回user資料
 app.post("/getTaskInfos", (req, res) => getTaskInfos.handleGet(req, res, db));
@@ -62,3 +63,4 @@ app.patch("/reviseTaskInfos", (req, res) =>
 app.delete("/deleteTaskInfos", (req, res) =>
   delTaskInfos.handleDelete(req, res, db)
 );
+//

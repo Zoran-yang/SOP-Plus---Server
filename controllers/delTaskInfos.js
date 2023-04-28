@@ -2,10 +2,10 @@ const handleDelete = (req, res, db) => {
   let { id, deletedInfo } = req.body;
   // user info checking
   if (!id) {
-    return res.status(400).json("blank signin info");
+    return res.status(400).json("Activity : delTaskInfos", "blank signin info");
   }
   if (id !== "zoran") {
-    res.status(400).json("wrong login Info");
+    res.status(400).json("Activity : delTaskInfos", "wrong login Info");
   }
 
   // according to requestedType, getting task info

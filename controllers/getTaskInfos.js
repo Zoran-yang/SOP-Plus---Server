@@ -5,12 +5,13 @@ const handleGet = (req, res, db) => {
 
   // user info checking
   if (!id) {
-    return res.status(400).json("blank signin info");
+    return res.status(400).json("Activity : getTaskInfos", "blank signin info");
   }
   if (!validateUser.handleValidate(id)) {
-    return res.status(400).json("wrong login Info");
+    return res.status(400).json("Activity : getTaskInfos", "wrong login Info");
   }
 
+  console.log("requestInfo", requestInfo);
   // according to requestedType, getting task info
   switch (requestInfo.requestType) {
     case "taskTypes":
@@ -22,7 +23,7 @@ const handleGet = (req, res, db) => {
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : getTaskInfos", "system error");
         });
       break;
     case "taskNames":
@@ -35,7 +36,7 @@ const handleGet = (req, res, db) => {
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : getTaskInfos", "system error");
         });
       break;
     case "taskTags":
@@ -47,7 +48,7 @@ const handleGet = (req, res, db) => {
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : getTaskInfos", "system error");
         });
       break;
     case "taskSOP":
@@ -67,7 +68,7 @@ const handleGet = (req, res, db) => {
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : getTaskInfos", "system error");
         });
       break;
     case "AllTaskSOP":
@@ -79,7 +80,7 @@ const handleGet = (req, res, db) => {
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : getTaskInfos", "system error");
         });
       break;
   }

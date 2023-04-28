@@ -2,10 +2,12 @@ const handleUpdate = (req, res, db) => {
   let { id, updatedInfo } = req.body;
   // user info checking
   if (!id) {
-    return res.status(400).json("blank signin info");
+    return res
+      .status(400)
+      .json("Activity : updateTaskInfos", "blank signin info");
   }
   if (id !== "zoran") {
-    res.status(400).json("wrong login Info");
+    res.status(400).json("Activity : updateTaskInfos", "wrong login Info");
   }
   console.log("updatedInfo", updatedInfo);
 
@@ -17,8 +19,7 @@ const handleUpdate = (req, res, db) => {
         .first()
         .then((result) => {
           if (result) {
-            //if task already exist
-            res.status(400).json("tasktype already exist");
+            //if task already exist, no warning, just return
             return;
           }
           db("tasktypes") //if task not exist, insert new task
@@ -30,12 +31,14 @@ const handleUpdate = (req, res, db) => {
             })
             .catch((err) => {
               console.log(err);
-              res.status(400).json("system error");
+              res
+                .status(400)
+                .json("Activity : updateTaskInfos", "system error");
             });
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : updateTaskInfos", "system error");
         });
       break;
     case "taskNames":
@@ -48,8 +51,7 @@ const handleUpdate = (req, res, db) => {
         .first()
         .then((result) => {
           if (result) {
-            //if task already exist
-            res.status(400).json("taskname already exist");
+            //if task already exist, no warning, just return
             return;
           }
           db("tasknames") //if task not exist, insert new task
@@ -64,12 +66,14 @@ const handleUpdate = (req, res, db) => {
             })
             .catch((err) => {
               console.log(err);
-              res.status(400).json("system error");
+              res
+                .status(400)
+                .json("Activity : updateTaskInfos", "system error");
             });
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : updateTaskInfos", "system error");
         });
       break;
     case "taskTags":
@@ -81,8 +85,7 @@ const handleUpdate = (req, res, db) => {
         .first()
         .then((result) => {
           if (result) {
-            //if task exist
-            res.status(400).json("taskname already exist");
+            //if task already exist, no warning, just return
             return;
           }
           db("tasktags")
@@ -100,12 +103,14 @@ const handleUpdate = (req, res, db) => {
                 return;
               }
               console.log(err);
-              res.status(400).json("system error");
+              res
+                .status(400)
+                .json("Activity : updateTaskInfos", "system error");
             });
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : updateTaskInfos", "system error");
         });
       break;
     case "taskContent":
@@ -124,7 +129,7 @@ const handleUpdate = (req, res, db) => {
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : updateTaskInfos", "system error");
         });
       break;
     case "TaskSOP":
@@ -163,18 +168,22 @@ const handleUpdate = (req, res, db) => {
                   return;
                 }
                 console.log(err);
-                res.status(400).json("system error");
+                res
+                  .status(400)
+                  .json("Activity : updateTaskInfos", "system error");
               });
           } else {
             //task already exist
             res
               .status(400)
-              .json("SOP already exist, please revise your SOP infomation");
+              .json(
+                "This SOP already exist, please add another SOP infomation"
+              );
           }
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : updateTaskInfos", "system error");
         });
       break;
   }

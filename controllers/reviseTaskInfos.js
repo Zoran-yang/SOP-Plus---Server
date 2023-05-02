@@ -26,21 +26,57 @@ const handleRevise = (req, res, db) => {
     //     res.status(400).json("system error")
     //   })
     //   break;
-    // case "taskNames":
-    //   db("tasknames").insert({
-    //     tasktype : JSON.stringify(updatedInfo.taskType),
-    //     taskname : JSON.stringify(updatedInfo.taskName)
-    //   }).returning("*").then((data) => { //get tasknames by tasktype
-    //     res.json(data);
-    //   })
-    //   .catch((err)=>{
-    //     if (err.code === "23505") {
-    //       return
-    //     }
-    //     console.log(err)
-    //     res.status(400).json("system error")
-    //   })
-    //   break;
+    case "taskNames":
+      //update tasknames
+      db("tasknames")
+        .where({
+          id: revisedInfo.id,
+        })
+        .update({
+          taskname: JSON.stringify(revisedInfo.taskName),
+        })
+        .returning("*")
+        .then((data) => {
+          //get tasknames by tasktype
+          console.log("taskNames", "data", data);
+          res.json(data);
+        })
+        .catch((err) => {
+          if (err.code === "23505") {
+            return;
+          }
+          console.log(err);
+          res.status(400).json("system error");
+        });
+      //update the tasknames of tasksops which taskname is revised
+      db("tasksops")
+        .where({
+          taskname: revisedInfo.taskName,
+        })
+        .update({
+          taskname: JSON.stringify(revisedInfo.taskName),
+        })
+        .catch((err) => {
+          if (err.code === "23505") {
+            return;
+          }
+          console.log(err);
+        });
+      //update the tasknames of taskdetails which taskname is revised
+      db("taskdetails") //repeated content is allowed
+        .where({
+          taskname: revisedInfo.taskName,
+        })
+        .update({
+          taskname: JSON.stringify(revisedInfo.taskName),
+        })
+        .catch((err) => {
+          if (err.code === "23505") {
+            return;
+          }
+          console.log(err);
+        });
+      break;
     // case "taskTags":
     //   db("tasktags").insert({
     //     tasktag : JSON.stringify(updatedInfo.TaskTag)

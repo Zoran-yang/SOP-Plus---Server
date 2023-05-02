@@ -71,6 +71,43 @@ const handleGet = (req, res, db) => {
           res.status(400).json("Activity : getTaskInfos", "system error");
         });
       break;
+    case "AllTaskTypes":
+      db("tasktypes")
+        .returning("*")
+        .then((data) => {
+          //get tasknames by tasktype
+          console.log("AllTaskTypes", data);
+          res.json(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(400).json("Activity : getTaskInfos", "system error");
+        });
+      break;
+    case "AllTaskNames":
+      db("tasknames")
+        .returning("*")
+        .then((data) => {
+          //get tasknames by tasktype
+          res.json(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(400).json("Activity : getTaskInfos", "system error");
+        });
+      break;
+    case "AllTaskTags":
+      db("tasktags")
+        .returning("*")
+        .then((data) => {
+          //get tasknames by tasktype
+          res.json(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(400).json("Activity : getTaskInfos", "system error");
+        });
+      break;
     case "AllTaskSOP":
       db("tasksops")
         .returning("*")

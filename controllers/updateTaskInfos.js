@@ -19,7 +19,7 @@ const handleUpdate = (req, res, db) => {
         .first()
         .then((result) => {
           if (result) {
-            //if task already exist, no warning, just return
+            res.json(result);
             return;
           }
           db("tasktypes") //if task not exist, insert new task
@@ -51,7 +51,7 @@ const handleUpdate = (req, res, db) => {
         .first()
         .then((result) => {
           if (result) {
-            //if task already exist, no warning, just return
+            res.json(result);
             return;
           }
           db("tasknames") //if task not exist, insert new task
@@ -85,7 +85,7 @@ const handleUpdate = (req, res, db) => {
         .first()
         .then((result) => {
           if (result) {
-            //if task already exist, no warning, just return
+            res.json(result);
             return;
           }
           db("tasktags")
@@ -132,6 +132,7 @@ const handleUpdate = (req, res, db) => {
           res.status(400).json("Activity : updateTaskInfos", "system error");
         });
       break;
+
     case "TaskSOP":
       const originalDataJsonb = JSON.stringify(updatedInfo.taskTag);
       db("tasksops") //check if task already exist

@@ -63,7 +63,7 @@ const handleRevise = (req, res, db) => {
           console.log(err);
         });
       //update the tasknames of taskdetails which taskname is revised
-      db("taskdetails") //repeated content is allowed
+      db("taskdetails")
         .where({
           taskname: revisedInfo.taskName,
         })

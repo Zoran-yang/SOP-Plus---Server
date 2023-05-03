@@ -23,21 +23,54 @@ const handleDelete = (req, res, db) => {
     //     res.status(400).json("system error")
     //   })
     //   break;
-    // case "taskNames":
-    //   db("tasknames").insert({
-    //     tasktype : JSON.stringify(updatedInfo.taskType),
-    //     taskname : JSON.stringify(updatedInfo.taskName)
-    //   }).returning("*").then((data) => { //get tasknames by tasktype
-    //     res.json(data);
-    //   })
-    //   .catch((err)=>{
-    //     if (err.code === "23505") {
-    //       return
-    //     }
-    //     console.log(err)
-    //     res.status(400).json("system error")
-    //   })
-    //   break;
+    case "taskNames":
+      //delete tasknames
+      db("tasknames")
+        .where({
+          id: deletedInfo.id,
+        })
+        .returning("*")
+        .del()
+        .then((data) => {
+          console.log("taskNames", "data", data);
+          //delete the tasknames of tasksops which taskname is deleted
+          db("tasksops")
+            .where({
+              taskname: data.taskName,
+            })
+            // not detele the taskname of taskdetails, just set it to ""
+            .update({
+              taskname: "",
+            })
+            .catch((err) => {
+              if (err.code === "23505") {
+                return;
+              }
+              console.log(err);
+            });
+          //delete the tasknames of taskdetails which taskname is revised
+          db("taskdetails")
+            .where({
+              taskname: data.taskName,
+            })
+            // not detele the taskname of taskdetails, just set it to ""
+            .update({
+              taskname: "",
+            })
+            .catch((err) => {
+              if (err.code === "23505") {
+                return;
+              }
+              console.log(err);
+            });
+          res.json(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(400).json("Task name is not deleted");
+        });
+
+      break;
     // case "taskTags":
     //   db("tasktags").insert({
     //     tasktag : JSON.stringify(updatedInfo.TaskTag)

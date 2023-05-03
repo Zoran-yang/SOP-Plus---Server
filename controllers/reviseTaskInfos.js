@@ -24,17 +24,24 @@ const handleRevise = (req, res, db) => {
           if (
             data.length === 0 //no such tasktype in tasktypes
           ) {
+            //update the tasktypes to name, sop, detail including the revised tasktype
             db("tasktypes")
               .where({
                 id: revisedInfo.id,
               })
               .returning("*")
               .then((data) => {
+                console.log("tasktypes", "data[0]", data[0]);
+                console.log(
+                  "tasktypes",
+                  "revisedInfo.taskType",
+                  revisedInfo.taskType
+                );
                 //update the tasktypes of tasksops which tasktype is revised
                 db("tasknames")
                   .where({
                     // get tasknames which tasktype is revised
-                    tasktype: data.tasktype,
+                    tasktype: data[0].tasktype,
                   })
                   .update({
                     // update tasknames with new tasktype
@@ -51,7 +58,7 @@ const handleRevise = (req, res, db) => {
                 db("tasksops")
                   .where({
                     // get tasksops which tasktype is revised
-                    tasktype: data.tasktype,
+                    tasktype: data[0].tasktype,
                   })
                   .update({
                     // update tasksops with new tasktype
@@ -64,11 +71,11 @@ const handleRevise = (req, res, db) => {
                     console.log(err);
                   });
 
-                //update the tasktypes of taskdetails which tasktype is revised
+                // update the tasktypes of taskdetails which tasktype is revised
                 db("taskdetails")
                   .where({
                     // get taskdetails which tasktype is revised
-                    tasktype: data.tasktype,
+                    tasktype: data[0].tasktype,
                   })
                   .update({
                     // update taskdetails with new tasktype
@@ -93,7 +100,6 @@ const handleRevise = (req, res, db) => {
               .returning("*")
               .then((data) => {
                 //get tasktypes
-                console.log("taskTypes", "data", data);
                 res.json(data);
               })
               .catch((err) => {
@@ -133,11 +139,11 @@ const handleRevise = (req, res, db) => {
               })
               .returning("*")
               .then((data) => {
-                //update the tasknames of tasksops which taskname is revised
+                //update the tasknames to sop, detail including the revised taskname
                 db("tasksops")
                   .where({
                     // get the taskname of tasksops which taskname is revised
-                    taskname: data.taskname,
+                    taskname: data[0].taskname,
                   })
                   .update({
                     // update the taskname of tasksops with new taskname
@@ -153,7 +159,7 @@ const handleRevise = (req, res, db) => {
                 db("taskdetails")
                   .where({
                     // get the taskname of tasksops which taskname is revised
-                    taskname: data.taskname,
+                    taskname: data[0].taskname,
                   })
                   .update({
                     // update the taskname of tasksops with new taskname

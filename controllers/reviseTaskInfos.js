@@ -4,78 +4,201 @@ const handleRevise = (req, res, db) => {
   if (!id) {
     return res
       .status(400)
-      .json("Activity : reviseTaskInfos", "blank signin info");
+      .json("Activity : reviseTaskInfos, blank signin info");
   }
   if (id !== "zoran") {
-    res.status(400).json("Activity : reviseTaskInfos", "wrong login Info");
+    res.status(400).json("Activity : reviseTaskInfos, wrong login Info");
   }
   console.log("revisedInfo", revisedInfo);
 
   // according to requestedType, getting task info
   switch (revisedInfo.requestType) {
-    // case "taskTypes":
-    //   db("tasktypes").insert({tasktype : JSON.stringify(updatedInfo.taskType)})
-    //   .returning("*")
-    //   .then((data) => { //get all tasktypes
-    //     res.json(data);
-    //   }).catch((err)=>{
-    //     console.log(err.code)
-    //     if (err.code === "23505") {
-    //       return
-    //     }
-    //     res.status(400).json("system error")
-    //   })
-    //   break;
+    case "taskTypes":
+      //update tasktypes
+      db("tasktypes")
+        .where({
+          tasktype: revisedInfo.taskType,
+        })
+        .then((data) => {
+          // avoid duplicate tasktype in tasktypes
+          if (
+            data.length === 0 //no such tasktype in tasktypes
+          ) {
+            db("tasktypes")
+              .where({
+                id: revisedInfo.id,
+              })
+              .returning("*")
+              .then((data) => {
+                //update the tasktypes of tasksops which tasktype is revised
+                db("tasknames")
+                  .where({
+                    // get tasknames which tasktype is revised
+                    tasktype: data.tasktype,
+                  })
+                  .update({
+                    // update tasknames with new tasktype
+                    tasktype: JSON.stringify(revisedInfo.taskType),
+                  })
+                  .catch((err) => {
+                    if (err.code === "23505") {
+                      return;
+                    }
+                    console.log(err);
+                  });
+
+                //update the tasktypes of tasksops which tasktype is revised
+                db("tasksops")
+                  .where({
+                    // get tasksops which tasktype is revised
+                    tasktype: data.tasktype,
+                  })
+                  .update({
+                    // update tasksops with new tasktype
+                    tasktype: JSON.stringify(revisedInfo.taskType),
+                  })
+                  .catch((err) => {
+                    if (err.code === "23505") {
+                      return;
+                    }
+                    console.log(err);
+                  });
+
+                //update the tasktypes of taskdetails which tasktype is revised
+                db("taskdetails")
+                  .where({
+                    // get taskdetails which tasktype is revised
+                    tasktype: data.tasktype,
+                  })
+                  .update({
+                    // update taskdetails with new tasktype
+                    tasktype: JSON.stringify(revisedInfo.taskType),
+                  })
+                  .catch((err) => {
+                    if (err.code === "23505") {
+                      return;
+                    }
+                    console.log(err);
+                  });
+              });
+
+            //update the tasktypes
+            db("tasktypes")
+              .where({
+                id: revisedInfo.id,
+              })
+              .update({
+                tasktype: JSON.stringify(revisedInfo.taskType),
+              })
+              .returning("*")
+              .then((data) => {
+                //get tasktypes
+                console.log("taskTypes", "data", data);
+                res.json(data);
+              })
+              .catch((err) => {
+                if (err.code === "23505") {
+                  return;
+                }
+                console.log(err);
+                res
+                  .status(400)
+                  .json("Activity : reviseTaskInfos, system error");
+              });
+          } else {
+            //duplicate tasktype in tasktypes
+            res.status(400).json("Duplicate tasktype");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(400).json("Activity : reviseTaskInfos, system error");
+        });
+      break;
     case "taskNames":
       //update tasknames
       db("tasknames")
         .where({
-          id: revisedInfo.id,
+          tasktype: revisedInfo.taskType,
+          taskname: revisedInfo.taskName,
         })
-        .update({
-          taskname: JSON.stringify(revisedInfo.taskName),
-        })
-        .returning("*")
         .then((data) => {
-          //get tasknames by tasktype
-          console.log("taskNames", "data", data);
-          res.json(data);
+          // avoid duplicate taskname in tasktypes
+          if (
+            data.length === 0 //no such taskname in tasktypes
+          ) {
+            db("tasknames")
+              .where({
+                id: revisedInfo.id,
+              })
+              .returning("*")
+              .then((data) => {
+                //update the tasknames of tasksops which taskname is revised
+                db("tasksops")
+                  .where({
+                    // get the taskname of tasksops which taskname is revised
+                    taskname: data.taskname,
+                  })
+                  .update({
+                    // update the taskname of tasksops with new taskname
+                    taskname: JSON.stringify(revisedInfo.taskName),
+                  })
+                  .catch((err) => {
+                    if (err.code === "23505") {
+                      return;
+                    }
+                    console.log(err);
+                  });
+                //update the tasknames of taskdetails which taskname is revised
+                db("taskdetails")
+                  .where({
+                    // get the taskname of tasksops which taskname is revised
+                    taskname: data.taskname,
+                  })
+                  .update({
+                    // update the taskname of tasksops with new taskname
+                    taskname: JSON.stringify(revisedInfo.taskName),
+                  })
+                  .catch((err) => {
+                    if (err.code === "23505") {
+                      return;
+                    }
+                    console.log(err);
+                  });
+              });
+
+            //update the tasknames
+            db("tasknames")
+              .where({
+                id: revisedInfo.id,
+              })
+              .update({
+                taskname: JSON.stringify(revisedInfo.taskName),
+              })
+              .returning("*")
+              .then((data) => {
+                //get tasknames by tasktype
+                console.log("taskNames", "data", data);
+                res.json(data);
+              })
+              .catch((err) => {
+                if (err.code === "23505") {
+                  return;
+                }
+                console.log(err);
+                res
+                  .status(400)
+                  .json("Activity : reviseTaskInfos, system error");
+              });
+          } else {
+            res.status(400).json("Duplicate taskname in tasktypes");
+          }
         })
         .catch((err) => {
-          if (err.code === "23505") {
-            return;
-          }
           console.log(err);
-          res.status(400).json("system error");
+          res.status(400).json("Activity : reviseTaskInfos, system error");
         });
-      //update the tasknames of tasksops which taskname is revised
-      db("tasksops")
-        .where({
-          taskname: revisedInfo.taskName,
-        })
-        .update({
-          taskname: JSON.stringify(revisedInfo.taskName),
-        })
-        .catch((err) => {
-          if (err.code === "23505") {
-            return;
-          }
-          console.log(err);
-        });
-      //update the tasknames of taskdetails which taskname is revised
-      db("taskdetails")
-        .where({
-          taskname: revisedInfo.taskName,
-        })
-        .update({
-          taskname: JSON.stringify(revisedInfo.taskName),
-        })
-        .catch((err) => {
-          if (err.code === "23505") {
-            return;
-          }
-          console.log(err);
-        });
+
       break;
     // case "taskTags":
     //   db("tasktags").insert({
@@ -123,9 +246,12 @@ const handleRevise = (req, res, db) => {
           taskname: revisedInfo.taskName,
         })
         .then((data) => {
+          // avoid duplicate task SOP with the same tasktag, tasktype and taskname
           if (
-            data.length === 0 || //no such task
-            (data.length && data[0].sopid === revisedInfo.sopId) //the task is the same as the original one
+            //no such task
+            data.length === 0 ||
+            //the task is the original one, only task SOP is revised
+            (data.length && data[0].sopid === revisedInfo.sopId)
           ) {
             //no such task or the task is the same as the original one
             //The reason why I don't use constraint in database is that tasktag is a array,
@@ -146,7 +272,7 @@ const handleRevise = (req, res, db) => {
                 console.log(err);
                 res
                   .status(400)
-                  .json("Activity : reviseTaskInfos", "system error");
+                  .json("Activity : reviseTaskInfos, system error");
               });
           } else {
             //task already exist
@@ -157,7 +283,7 @@ const handleRevise = (req, res, db) => {
         })
         .catch((err) => {
           console.log(err);
-          res.status(400).json("Activity : reviseTaskInfos", "system error");
+          res.status(400).json("Activity : reviseTaskInfos, system error");
         });
       break;
   }

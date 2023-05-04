@@ -218,27 +218,25 @@ const handleRevise = (req, res, db) => {
               .returning("*")
               .then((data) => {
                 //update the tasktags of tasksops which tasktype is revised
-                const originalDataJsonb = data[0].tasktag;
+                const originalDataJsonb = JSON.stringify([
+                  JSON.parse(data[0].tasktag),
+                ]);
                 const originalTitle = JSON.parse(data[0].tasktag).title;
-                const revisedDataJsonb = JSON.stringify(revisedInfo.taskTag); //
-                console.log("taskTags", "originalDataJsonb", originalDataJsonb);
-                console.log("taskTags", "originalTitle", originalTitle);
-                console.log("taskTags", "revisedDataJsonb", revisedDataJsonb);
+                const revisedDataJsonb = revisedInfo.taskTag; //
+                console.log("originalDataJsonb", originalDataJsonb);
+                console.log("originalTitle", originalTitle);
+                console.log("revisedDataJsonb", revisedDataJsonb);
                 db("tasksops")
                   .whereRaw(
                     //check if the tasktags already exist
-                    "tasktag::jsonb @> ?::jsonb AND jsonb_array_length(tasktag::jsonb) = jsonb_array_length(?::jsonb)",
-                    [originalDataJsonb, originalDataJsonb]
+                    "tasktag::jsonb @> ?::jsonb",
+                    [originalDataJsonb]
                   )
-                  // .update({
-                  //   tasktag: db.raw(
-                  //     "jsonb_set(tasktag, array_position(array_agg(tasktag_elements->>'title') FILTER (WHERE tasktag_elements->>'title' = ?), ?)::text[], ?::jsonb)",
-                  //     [originalTitle, originalTitle, revisedDataJsonb]
-                  //   ),
-                  // })
-                  .returning("*")
-                  .then((data) => {
-                    console.log("taskTags", "data", data);
+                  .update({
+                    tasktag: db.raw(
+                      "jsonb_set(tasktag::jsonb, CONCAT('{', (SELECT idx FROM jsonb_array_elements(tasktag::jsonb) WITH ORDINALITY AS elem(obj, idx) WHERE obj->>'title' = ? )-1, '}')::text[], ?::jsonb)",
+                      [originalTitle, revisedDataJsonb]
+                    ),
                   })
                   .catch((err) => {
                     if (err.code === "23505") {
@@ -246,6 +244,48 @@ const handleRevise = (req, res, db) => {
                     }
                     console.log(err);
                   });
+                db("taskdetails")
+                  .where({
+                    //check if the tasktags already exist
+                    tasktag: data[0].tasktag,
+                    // Because the format of tasktag column in taskdetails
+                    //is {title: "xxx"} not [{title: "xxx"}] for only one tasktag in it
+                  })
+                  .update({
+                    tasktag: JSON.stringify(revisedInfo.taskTag),
+                  })
+                  // .returning("*")
+                  .then((data) => {
+                    console.log("taskdetails", "data", data);
+                  })
+                  .catch((err) => {
+                    if (err.code === "23505") {
+                      return;
+                    }
+                    console.log(err);
+                  });
+              });
+            // update the tasktags
+            db("tasktags")
+              .where({
+                id: revisedInfo.id,
+              })
+              .update({
+                tasktag: JSON.stringify(revisedInfo.taskTag),
+              })
+              .returning("*")
+              .then((data) => {
+                //get tasktypes
+                res.json(data);
+              })
+              .catch((err) => {
+                if (err.code === "23505") {
+                  return;
+                }
+                console.log(err);
+                res
+                  .status(400)
+                  .json("Activity : reviseTaskInfos, system error");
               });
           } else {
             //duplicate tasktype in tasktypes

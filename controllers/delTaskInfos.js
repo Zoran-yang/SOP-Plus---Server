@@ -71,38 +71,59 @@ const handleDelete = (req, res, db) => {
         });
 
       break;
-    // case "taskTags":
-    //   db("tasktags").insert({
-    //     tasktag : JSON.stringify(updatedInfo.TaskTag)
-    //   }).returning("*").then((data) => { //get all tasktags
-    //     res.json(data);
-    //   })
-    //   .catch((err)=>{
-    //     if (err.code === "23505") {
-    //       return
-    //     }
-    //     console.log(err)
-    //     res.status(400).json("system error")
-    //   })
-    //   break;
-    // case "taskContent":
-    //   db("taskdetails").insert({
-    //       tasktype : JSON.stringify(updatedInfo.taskType),
-    //       taskname : JSON.stringify(updatedInfo.taskName),
-    //       tasktag : JSON.stringify(updatedInfo.taskTag),
-    //       taskdetail : JSON.stringify(updatedInfo.taskContent),
-    //       detailid : JSON.stringify(updatedInfo.detailId)
-    //     }).returning("*").then((data) => { //get all tasktags
-    //     res.json(data);
-    //   })
-    //   .catch((err)=>{
-    //     if (err.code === "23505") {
-    //       return
-    //     }
-    //     console.log(err)
-    //     res.status(400).json("system error")
-    //   })
-    //   break;
+    case "taskTags":
+      db("tasktags")
+        .where({
+          id: deletedInfo.id,
+        })
+        .returning("*")
+        // .del()
+        .then((data) => {
+          //delete the tasktag of tasksops which tasktag is deleted
+          const originalDataJsonb = JSON.stringify([
+            JSON.parse(data[0].tasktag),
+          ]);
+          const originalTitle = JSON.parse(data[0].tasktag).title;
+          db("tasksops")
+            .whereRaw("tasktag::jsonb @> ?::jsonb", [originalDataJsonb])
+            .update("tasktag", function () {
+              this.select(db.raw("jsonb_agg(elems.value)"))
+                .from(
+                  db.raw(
+                    "jsonb_array_elements(tasktag::jsonb) WITH ORDINALITY as elems(value)"
+                  )
+                )
+                .whereNot(
+                  db.raw("elems.value ->> ? = ?", ["title", originalTitle])
+                );
+            })
+            .catch((err) => {
+              if (err.code === "23505") {
+                return;
+              }
+              console.log(err);
+            });
+
+          //delete the tasktag of taskdetails which tasktag is revised
+          db("taskdetails")
+            .where({
+              tasktag: data[0].tasktag,
+            })
+            // detele whole row
+            .del()
+            .catch((err) => {
+              if (err.code === "23505") {
+                return;
+              }
+              console.log(err);
+            });
+          res.json(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(400).json("Task tag is not deleted");
+        });
+      break;
     case "TaskSOP":
       db("tasksops")
         .where({

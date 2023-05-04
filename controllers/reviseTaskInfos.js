@@ -223,9 +223,6 @@ const handleRevise = (req, res, db) => {
                 ]);
                 const originalTitle = JSON.parse(data[0].tasktag).title;
                 const revisedDataJsonb = revisedInfo.taskTag; //
-                console.log("originalDataJsonb", originalDataJsonb);
-                console.log("originalTitle", originalTitle);
-                console.log("revisedDataJsonb", revisedDataJsonb);
                 db("tasksops")
                   .whereRaw(
                     //check if the tasktags already exist

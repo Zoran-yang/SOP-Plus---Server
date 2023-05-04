@@ -31,12 +31,6 @@ const handleRevise = (req, res, db) => {
               })
               .returning("*")
               .then((data) => {
-                console.log("tasktypes", "data[0]", data[0]);
-                console.log(
-                  "tasktypes",
-                  "revisedInfo.taskType",
-                  revisedInfo.taskType
-                );
                 //update the tasktypes of tasksops which tasktype is revised
                 db("tasknames")
                   .where({
@@ -206,38 +200,63 @@ const handleRevise = (req, res, db) => {
         });
 
       break;
-    // case "taskTags":
-    //   db("tasktags").insert({
-    //     tasktag : JSON.stringify(updatedInfo.TaskTag)
-    //   }).returning("*").then((data) => { //get all tasktags
-    //     res.json(data);
-    //   })
-    //   .catch((err)=>{
-    //     if (err.code === "23505") {
-    //       return
-    //     }
-    //     console.log(err)
-    //     res.status(400).json("system error")
-    //   })
-    //   break;
-    // case "taskContent":
-    //   db("taskdetails").insert({
-    //       tasktype : JSON.stringify(updatedInfo.taskType),
-    //       taskname : JSON.stringify(updatedInfo.taskName),
-    //       tasktag : JSON.stringify(updatedInfo.taskTag),
-    //       taskdetail : JSON.stringify(updatedInfo.taskContent),
-    //       detailid : JSON.stringify(updatedInfo.detailId)
-    //     }).returning("*").then((data) => { //get all tasktags
-    //     res.json(data);
-    //   })
-    //   .catch((err)=>{
-    //     if (err.code === "23505") {
-    //       return
-    //     }
-    //     console.log(err)
-    //     res.status(400).json("system error")
-    //   })
-    //   break;
+    case "taskTags":
+      //update tasktags
+      db("tasktags")
+        .where({
+          tasktag: revisedInfo.taskTag,
+        })
+        .then((data) => {
+          // avoid duplicate tasktag in tasktags
+          if (data.length === 0) {
+            //no such tasktag in tasktags
+            //update the tasktags to sop, detail including the revised tasktag
+            db("tasktags")
+              .where({
+                id: revisedInfo.id,
+              })
+              .returning("*")
+              .then((data) => {
+                //update the tasktags of tasksops which tasktype is revised
+                const originalDataJsonb = data[0].tasktag;
+                const originalTitle = JSON.parse(data[0].tasktag).title;
+                const revisedDataJsonb = JSON.stringify(revisedInfo.taskTag); //
+                console.log("taskTags", "originalDataJsonb", originalDataJsonb);
+                console.log("taskTags", "originalTitle", originalTitle);
+                console.log("taskTags", "revisedDataJsonb", revisedDataJsonb);
+                db("tasksops")
+                  .whereRaw(
+                    //check if the tasktags already exist
+                    "tasktag::jsonb @> ?::jsonb AND jsonb_array_length(tasktag::jsonb) = jsonb_array_length(?::jsonb)",
+                    [originalDataJsonb, originalDataJsonb]
+                  )
+                  // .update({
+                  //   tasktag: db.raw(
+                  //     "jsonb_set(tasktag, array_position(array_agg(tasktag_elements->>'title') FILTER (WHERE tasktag_elements->>'title' = ?), ?)::text[], ?::jsonb)",
+                  //     [originalTitle, originalTitle, revisedDataJsonb]
+                  //   ),
+                  // })
+                  .returning("*")
+                  .then((data) => {
+                    console.log("taskTags", "data", data);
+                  })
+                  .catch((err) => {
+                    if (err.code === "23505") {
+                      return;
+                    }
+                    console.log(err);
+                  });
+              });
+          } else {
+            //duplicate tasktype in tasktypes
+            res.status(400).json("Duplicate task tag");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(400).json("Activity : reviseTaskInfos, system error");
+        });
+      break;
     case "TaskSOP":
       const originalDataJsonb = JSON.stringify(revisedInfo.taskTag);
       db("tasksops")

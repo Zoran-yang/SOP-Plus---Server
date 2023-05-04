@@ -7,6 +7,7 @@ const handleDelete = (req, res, db) => {
   if (id !== "zoran") {
     res.status(400).json("Activity : delTaskInfos", "wrong login Info");
   }
+  console.log("deletedInfo", deletedInfo);
 
   // according to requestedType, getting task info
   switch (deletedInfo.requestType) {
@@ -33,43 +34,43 @@ const handleDelete = (req, res, db) => {
         .del()
         .then((data) => {
           console.log("taskNames", "data", data);
+          //? Should I delete tasknames of tasksops and taskdetails all together?
           //delete the tasknames of tasksops which taskname is deleted
-          db("tasksops")
-            .where({
-              taskname: data.taskName,
-            })
-            // not detele the taskname of taskdetails, just set it to ""
-            .update({
-              taskname: "",
-            })
-            .catch((err) => {
-              if (err.code === "23505") {
-                return;
-              }
-              console.log(err);
-            });
-          //delete the tasknames of taskdetails which taskname is revised
-          db("taskdetails")
-            .where({
-              taskname: data.taskName,
-            })
-            // not detele the taskname of taskdetails, just set it to ""
-            .update({
-              taskname: "",
-            })
-            .catch((err) => {
-              if (err.code === "23505") {
-                return;
-              }
-              console.log(err);
-            });
+          // db("tasksops")
+          //   .where({
+          //     taskname: data.taskName,
+          //   })
+          //   // not detele the taskname of taskdetails, just set it to ""
+          //   .update({
+          //     taskname: "",
+          //   })
+          //   .catch((err) => {
+          //     if (err.code === "23505") {
+          //       return;
+          //     }
+          //     console.log(err);
+          //   });
+          // //delete the tasknames of taskdetails which taskname is revised
+          // db("taskdetails")
+          //   .where({
+          //     taskname: data.taskName,
+          //   })
+          //   // not detele the taskname of taskdetails, just set it to ""
+          //   .update({
+          //     taskname: "",
+          //   })
+          //   .catch((err) => {
+          //     if (err.code === "23505") {
+          //       return;
+          //     }
+          //     console.log(err);
+          //   });
           res.json(data);
         })
         .catch((err) => {
           console.log(err);
           res.status(400).json("Task name is not deleted");
         });
-
       break;
     case "taskTags":
       db("tasktags")
@@ -77,7 +78,7 @@ const handleDelete = (req, res, db) => {
           id: deletedInfo.id,
         })
         .returning("*")
-        // .del()
+        .del()
         .then((data) => {
           //delete the tasktag of tasksops which tasktag is deleted
           const originalDataJsonb = JSON.stringify([
@@ -87,7 +88,9 @@ const handleDelete = (req, res, db) => {
           db("tasksops")
             .whereRaw("tasktag::jsonb @> ?::jsonb", [originalDataJsonb])
             .update("tasktag", function () {
-              this.select(db.raw("jsonb_agg(elems.value)"))
+              this.select(
+                db.raw("coalesce(jsonb_agg(elems.value), '[]'::jsonb)")
+              )
                 .from(
                   db.raw(
                     "jsonb_array_elements(tasktag::jsonb) WITH ORDINALITY as elems(value)"

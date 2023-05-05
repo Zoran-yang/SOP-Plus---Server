@@ -11,19 +11,37 @@ const handleDelete = (req, res, db) => {
 
   // according to requestedType, getting task info
   switch (deletedInfo.requestType) {
-    // case "taskTypes":
-    //   db("tasktypes").insert({tasktype : JSON.stringify(updatedInfo.taskType)})
-    //   .returning("*")
-    //   .then((data) => { //get all tasktypes
-    //     res.json(data);
-    //   }).catch((err)=>{
-    //     console.log(err.code)
-    //     if (err.code === "23505") {
-    //       return
-    //     }
-    //     res.status(400).json("system error")
-    //   })
-    //   break;
+    case "taskTypes":
+      db("tasktypes")
+        .where({
+          id: deletedInfo.id,
+        })
+        .returning("*")
+        .del()
+        .then((data) => {
+          console.log("tasktypes", "data", data);
+          db("tasknames")
+            .where({
+              tasktype: data[0].tasktype,
+            })
+            .del()
+            .returning("*")
+            .then((data) => {
+              console.log("tasktypes", "taskNames", "data", data);
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+          res.json(data);
+        })
+        .catch((err) => {
+          console.log(err.code);
+          if (err.code === "23505") {
+            return;
+          }
+          res.status(400).json("Task type is not deleted");
+        });
+      break;
     case "taskNames":
       //delete tasknames
       db("tasknames")
@@ -101,9 +119,6 @@ const handleDelete = (req, res, db) => {
                 );
             })
             .catch((err) => {
-              if (err.code === "23505") {
-                return;
-              }
               console.log(err);
             });
 
